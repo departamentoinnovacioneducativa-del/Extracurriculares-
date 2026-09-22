@@ -96,51 +96,66 @@ body.dark-mode .auth-card { border-top-color: var(--green); }
    ===== REGLAS PARA IMPRIMIR PERFECTO ======
    ========================================== */
 @page {
-  size: letter landscape; /* Fuerza a que el PDF salga en horizontal */
-  margin: 5mm;
+  size: letter landscape; /* Hoja horizontal */
+  margin: 0mm; /* Cero márgenes para maximizar espacio */
 }
 
 @media print {
-  /* Forzar colores reales (evita que la impresora lo pase a blanco y negro) */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   
-  /* Quitar el modo oscuro si está activado para no gastar tinta negra */
-  body, body.dark-mode { 
+  body, body.dark-mode, html { 
     background: white !important; 
     color: black !important; 
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   
-  /* Ocultar botones de navegación y configuración */
-  .no-print, .top-actions, #controls-bar, #workflow-controls, .node-actions { 
+  /* OCULTAR ABSOLUTAMENTE TODO LO QUE NO SEA EL MAPA */
+  .header-section, 
+  .footer, 
+  .legend, 
+  .top-actions, 
+  #controls-bar, 
+  #workflow-controls, 
+  .no-print { 
     display: none !important; 
   }
-
-  /* Ocultar el botoncito circular de +/- que queda debajo de la tarjeta */
+  
+  /* Ocultar botones de edición y el botón de +/- del mapa */
+  .node-actions, 
   .node-card > div[onclick^="toggleD3Node"] {
     display: none !important;
   }
   
-  /* Ajustar el contenedor para que no tenga scroll y se vea todo el lienzo */
-  #view-container { 
-    overflow: visible !important; 
-    height: auto !important; 
+  /* Quitar los márgenes del contenedor principal de la página */
+  main {
     padding: 0 !important;
     margin: 0 !important;
-  }
-  
-  /* El organigrama SVG se adapta al ancho de la hoja de papel */
-  #view-container svg { 
-    width: 100% !important; 
-    height: auto !important; 
+    max-width: 100% !important;
   }
 
-  body.dark-mode .header-section, 
-  body.dark-mode .legend { 
-    background: white !important; 
-    color: black !important; 
-    border-color: #e5e7eb !important; 
+  /* FORZAR AL MAPA A POSICIONARSE EN TODA LA HOJA */
+  #view-container { 
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: visible !important; 
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: white !important;
+  }
+  
+  /* Asegurar que el lienzo SVG llene el papel */
+  #view-container svg { 
+    width: 100% !important; 
+    height: 100% !important; 
   }
 }
