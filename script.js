@@ -378,7 +378,8 @@ window.addEventListener('DOMContentLoaded', () => {
   if(adminBtn) {
     adminBtn.addEventListener('click', () => {
       const passInput = document.getElementById('admin-pass-input').value;
-      if (passInput === "L0b0l0b0") { 
+      // AQUÍ VALIDAMOS CUALQUIERA DE LAS DOS CONTRASEÑAS
+      if (passInput === "lulut" || passInput === "L0b0l0b0") { 
         isAdmin = true;
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('settings-btn').classList.remove('hidden');
