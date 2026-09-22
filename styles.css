@@ -74,8 +74,6 @@ body.dark-mode .control-btn { background: var(--panel-bg); border-color: #94a3b8
 .workflow-select { width: 100%; padding: 12px 16px; border: 2px solid var(--navy); border-radius: 8px; background: var(--bg-color); font-weight: 600; color: var(--text-color); cursor: pointer; font-size: 14px; }
 .workflow-summary { margin-top: 20px; padding: 20px; background: var(--bg-color); border-radius: 12px; border-left: 6px solid var(--green); display: none; }
 .path-step { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--switch-bg); border-radius: 20px; font-weight: 700; font-size: 12px; border: 1px solid var(--panel-border); }
-
-/* Efecto de ruta activa sobre tarjetas D3 */
 .workflow-mode .node-card { opacity: 0.25; filter: grayscale(80%); }
 .workflow-mode .node-card.path-active { opacity: 1; filter: none; border-color: var(--yellow); box-shadow: 0 0 15px rgba(255, 209, 0, 0.6); }
 .path-number { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; background: var(--navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; border: 2px solid white; z-index: 10; }
@@ -93,3 +91,56 @@ body.dark-mode .auth-card { border-top-color: var(--green); }
 .legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; }
 .legend-color { width: 22px; height: 22px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .footer { text-align: center; padding: 24px 16px; font-size: 12px; border-top: 1px solid var(--panel-border); margin-top: 24px; opacity: 0.7; }
+
+/* ==========================================
+   ===== REGLAS PARA IMPRIMIR PERFECTO ======
+   ========================================== */
+@page {
+  size: letter landscape; /* Fuerza a que el PDF salga en horizontal */
+  margin: 5mm;
+}
+
+@media print {
+  /* Forzar colores reales (evita que la impresora lo pase a blanco y negro) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Quitar el modo oscuro si está activado para no gastar tinta negra */
+  body, body.dark-mode { 
+    background: white !important; 
+    color: black !important; 
+  }
+  
+  /* Ocultar botones de navegación y configuración */
+  .no-print, .top-actions, #controls-bar, #workflow-controls, .node-actions { 
+    display: none !important; 
+  }
+
+  /* Ocultar el botoncito circular de +/- que queda debajo de la tarjeta */
+  .node-card > div[onclick^="toggleD3Node"] {
+    display: none !important;
+  }
+  
+  /* Ajustar el contenedor para que no tenga scroll y se vea todo el lienzo */
+  #view-container { 
+    overflow: visible !important; 
+    height: auto !important; 
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* El organigrama SVG se adapta al ancho de la hoja de papel */
+  #view-container svg { 
+    width: 100% !important; 
+    height: auto !important; 
+  }
+
+  body.dark-mode .header-section, 
+  body.dark-mode .legend { 
+    background: white !important; 
+    color: black !important; 
+    border-color: #e5e7eb !important; 
+  }
+}
