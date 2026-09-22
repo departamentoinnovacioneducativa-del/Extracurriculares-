@@ -1,5 +1,6 @@
 // ===== CONFIGURACIÓN CLOUDFLARE KV & ESTADO =====
-const CLOUDFLARE_API_URL = ""; // Lo llenaremos en el Paso 3
+const CLOUDFLARE_API_URL = " https://github.com/cloudflare/workers-sdk/issues/new/choose
+"; // Lo llenaremos en el Paso 3
 let isAdmin = false;
 
 let nodesMap = {};
