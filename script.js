@@ -5,12 +5,89 @@ let isAdmin = false;
 let nodesMap = {};
 let nodeIdCounter = 0;
 
-// DATOS POR DEFECTO (Extracurriculares)
+// DATOS PRECARGADOS DESDE EL MAPA VISUAL (image_88d4bb.png)
 const DEFAULT_ORG_DATA = {
-  title: "Coordinación de Actividades Extracurriculares", 
-  person: "Vacante", 
+  title: "Coordinación Académica", 
+  person: "Dirección", 
   color: "green",
-  children: [] 
+  children: [
+    {
+      title: "Coordinación de Talleres Extracurriculares",
+      person: "Culturales, Artísticos y Deportivos.",
+      color: "navy",
+      children: [
+        {
+          title: "Prefectura de Extracurriculares",
+          color: "lightblue"
+        },
+        {
+          title: "Jardín de Niños",
+          color: "yellow",
+          children: [
+            { title: "Ballet", color: "lightblue" },
+            { title: "Karate", color: "lightblue" },
+            { title: "Next Beat Kids", color: "lightblue" },
+            { title: "Teclado", color: "lightblue" },
+            { title: "Imaginarte: Crea, Siente y Expresa", color: "lightblue" },
+            { title: "Estimulación Sensorial", color: "lightblue" },
+            { title: "Club de Tareas (Español e Inglés)", color: "lightblue" },
+            { title: "Juventud-Flag", color: "lightblue" },
+            { title: "Estimulación Deportiva (Sin costo)", color: "lightblue" },
+            { title: "Fútbol Varonil y Femenil (Sin costo)", color: "lightblue" }
+          ]
+        },
+        {
+          title: "Primaria",
+          color: "yellow",
+          children: [
+            { title: "Danza Folklórica Integral", color: "lightblue" },
+            { title: "Coro", color: "lightblue" },
+            { title: "Karate", color: "lightblue" },
+            { title: "Teclado", color: "lightblue" },
+            { title: "Círculo de Tareas (Español e Inglés)", color: "lightblue" },
+            { title: "Porras", color: "lightblue" },
+            { title: "Creative Lab.", color: "lightblue" },
+            { title: "Club de Ajedrez", color: "lightblue" },
+            { title: "Guitarra", color: "lightblue" },
+            { title: "Chino Mandarín", color: "lightblue" },
+            { title: "Tochito Juventud-Flag", color: "lightblue" }
+          ]
+        },
+        {
+          title: "Secundaria",
+          color: "yellow",
+          children: [
+            { title: "Porras", color: "lightblue" },
+            { title: "Karate", color: "lightblue" },
+            { title: "Club de Ajedrez", color: "lightblue" },
+            { title: "Guitarra", color: "lightblue" },
+            { title: "Chino Mandarín", color: "lightblue" },
+            { title: "Gráfica y Pintura", color: "lightblue" },
+            { title: "Teatro Musical", color: "lightblue" },
+            { title: "Fotografía Digital", color: "lightblue" },
+            { title: "Artificialmente Inteligente", color: "lightblue" },
+            { title: "Tochito-Flag", color: "lightblue" }
+          ]
+        },
+        {
+          title: "Preparatoria",
+          color: "yellow",
+          children: [
+            { title: "Teatro Musical", color: "lightblue" },
+            { title: "Karate", color: "lightblue" },
+            { title: "Artificialmente Intelig.", color: "lightblue" },
+            { title: "Guitarra", color: "lightblue" },
+            { title: "Chino Mandarín", color: "lightblue" },
+            { title: "Gráfica y Pintura", color: "lightblue" },
+            { title: "Cinematografía", color: "lightblue" },
+            { title: "Cinelé", color: "lightblue" },
+            { title: "Fotografía Digital", color: "lightblue" },
+            { title: "Tochito Juventud-Flag", color: "lightblue" }
+          ]
+        }
+      ]
+    }
+  ] 
 };
 
 let orgData = JSON.parse(localStorage.getItem('org_extra_data')) || DEFAULT_ORG_DATA;
@@ -54,7 +131,7 @@ function assignIds(node, parent = null) {
 }
 
 // ==========================================
-// ===== D3.JS: ÁRBOL ORTOGONAL (VERTICAL Y HORIZONTAL) 
+// ===== D3.JS: ÁRBOL ORTOGONAL 
 // ==========================================
 function renderD3Tree(orientation = 'vertical') {
   const container = document.getElementById('view-container');
@@ -78,13 +155,11 @@ function renderD3Tree(orientation = 'vertical') {
 
   const root = d3.hierarchy(orgData, d => d.children);
   
-  // Tamaño de separación entre nodos dependiendo de la orientación
   const treeLayout = d3.tree().nodeSize(
       orientation === 'horizontal' ? [180, 350] : [300, 250]
   );
   treeLayout(root);
 
-  // Creador de líneas (Links) con ángulos de 90 grados
   g.append("g").attr("class", "links")
       .selectAll(".link").data(root.links()).join("path")
       .attr("class", "link")
@@ -121,7 +196,6 @@ function renderD3Tree(orientation = 'vertical') {
       .append("xhtml:div")
       .html(d => generateCardHTML(d.data, orientation));
 
-  // Posicionar la cámara (zoom inicial) según la vista
   if (orientation === 'horizontal') {
       svg.call(zoom.transform, d3.zoomIdentity.translate(150, height / 2).scale(0.85));
   } else {
@@ -146,7 +220,6 @@ function generateCardHTML(data, orientation) {
     </div>`;
   }
   
-  // Botón expandir adaptado
   if (hasChildren) {
     const icon = isCollapsed ? 'fa-plus' : 'fa-minus';
     const btnPosition = orientation === 'horizontal'
@@ -246,7 +319,7 @@ function switchView(view, event) {
   if(!container) return;
 
   wfControls.style.display = 'none';
-  if(controlsBar) controlsBar.style.display = 'flex'; // Muestra botones
+  if(controlsBar) controlsBar.style.display = 'flex'; 
   
   container.className = 'org-tree'; container.classList.remove('workflow-mode');
   
@@ -256,7 +329,7 @@ function switchView(view, event) {
     renderD3Tree('horizontal');
   } else if (view === 'workflow') {
     wfControls.style.display = 'block';
-    if(controlsBar) controlsBar.style.display = 'none'; // Oculta botones
+    if(controlsBar) controlsBar.style.display = 'none'; 
     container.classList.add('workflow-mode');
     renderD3Tree('horizontal');
     populateDropdowns();
@@ -360,7 +433,6 @@ if (localStorage.getItem('theme') === 'dark') {
 
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW:', err)); }); }
 
-// Lógica segura de inicialización
 window.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('btn-guest-login');
   const adminBtn = document.getElementById('btn-admin-login');
