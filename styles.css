@@ -1,0 +1,95 @@
+:root {
+  --green: #009944;
+  --yellow: #FFD100;
+  --navy: #032A60;
+  --light-blue: #00A8FF;
+  --line: #64748b;
+  --bg-color: #ffffff;
+  --text-color: #1a1a1a;
+  --panel-bg: #f8fafc;
+  --panel-border: #e5e7eb;
+  --switch-bg: #f1f5f9;
+}
+
+body.dark-mode { --bg-color: #0f172a; --text-color: #e2e8f0; --panel-bg: #1e293b; --panel-border: #334155; --switch-bg: #1e293b; --line: #94a3b8; }
+* { box-sizing: border-box; }
+body { font-family: 'Manrope', sans-serif; background: var(--bg-color); color: var(--text-color); min-height: 100vh; margin: 0; transition: background 0.3s ease, color 0.3s ease; background-image: radial-gradient(circle at 12% 15%, rgba(0, 153, 68, 0.05) 0%, transparent 35%), radial-gradient(circle at 88% 85%, rgba(0, 168, 255, 0.05) 0%, transparent 35%); }
+.title-font { font-family: 'Oswald', sans-serif; }
+
+/* ===== HEADER ===== */
+.header-section { position: relative; padding: 16px 12px; background: var(--bg-color); border-bottom: 1px solid var(--panel-border); overflow: hidden; }
+@media (min-width: 768px) { .header-section { padding: 36px 24px; } }
+.header-section::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--green) 0%, var(--green) 25%, var(--yellow) 25%, var(--yellow) 50%, var(--light-blue) 50%, var(--light-blue) 75%, var(--navy) 75%, var(--navy) 100%); }
+.header-content { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; position: relative; z-index: 10; }
+@media (min-width: 768px) { .header-content { gap: 32px; } }
+.header-logo { width: 60px; height: 60px; object-fit: contain; flex-shrink: 0; transition: transform 0.4s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+.header-logo:hover { transform: scale(1.12) rotate(-4deg); }
+@media (min-width: 768px) { .header-logo { width: 130px; height: 130px; } }
+
+/* ===== CONTROLES Y SWITCHER ===== */
+.top-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+@media (min-width: 768px) { .top-actions { flex-direction: row; justify-content: center; align-items: center; margin-bottom: 24px; } }
+.view-switcher { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--switch-bg); padding: 6px; border-radius: 12px; border: 1px solid var(--panel-border); }
+@media (min-width: 640px) { .view-switcher { display: flex; flex-wrap: wrap; justify-content: center; } }
+.view-btn { padding: 10px 12px; border: none; background: transparent; color: #64748b; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; font-size: 11px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.view-btn:hover { color: var(--navy); background: rgba(255,255,255,0.5); }
+.view-btn.active { background: var(--navy); color: white; box-shadow: 0 4px 10px rgba(3,42,96,0.2); }
+body.dark-mode .view-btn { color: #94a3b8; }
+body.dark-mode .view-btn.active { background: var(--light-blue); color: #fff; }
+
+.controls { display: flex; gap: 8px; flex-direction: column; margin-bottom: 24px; }
+@media (min-width: 640px) { .controls { flex-direction: row; flex-wrap: wrap; justify-content: center; } }
+.control-btn { padding: 10px 18px; border: 2px solid var(--navy); background: var(--bg-color); color: var(--navy); border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; font-size: 12px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.control-btn:hover { background: var(--navy); color: white; transform: translateY(-2px); }
+.control-btn.green { border-color: var(--green); color: var(--green); }
+.control-btn.green:hover { background: var(--green); color: white; }
+.control-btn.yellow { border-color: #d4a900; color: #8a6d00; }
+.control-btn.yellow:hover { background: var(--yellow); color: var(--navy); }
+.control-btn.dark { border-color: #64748b; color: #64748b; }
+.control-btn.dark:hover { background: #64748b; color: white; }
+body.dark-mode .control-btn { background: var(--panel-bg); border-color: #94a3b8; color: #e2e8f0; }
+
+/* ===== TARJETAS Y NODOS ===== */
+.org-tree { padding: 16px 0; }
+.node-card { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 14px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; height: 100%; transition: all 0.25s ease; }
+.node-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+.node-green { background: var(--green); color: white; }
+.node-navy { background: var(--navy); color: white; }
+.node-yellow { background: var(--yellow); color: var(--navy); }
+.node-lightblue { background: var(--light-blue); color: white; }
+.node-title { font-weight: 700; font-size: 13px; line-height: 1.3; text-transform: uppercase; }
+.node-green .node-title { font-size: 16px; }
+.node-person { font-size: 11px; opacity: 0.92; margin-top: 6px; font-weight: 500; }
+.node-yellow .node-person { color: var(--navy); opacity: 0.72; }
+
+/* ===== BOTONES EDICIÓN IN-NODE ===== */
+.node-actions { display: flex; justify-content: center; gap: 8px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; width: 100%; }
+.node-yellow .node-actions { border-top-color: rgba(3, 42, 96, 0.2); }
+.node-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; color: inherit; transition: all 0.2s; }
+.node-yellow .node-btn { background: rgba(3, 42, 96, 0.1); color: var(--navy); }
+.node-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.15); }
+
+/* ===== WORKFLOW (ILUMINACIÓN DE RUTAS) ===== */
+.workflow-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+.workflow-select { width: 100%; padding: 12px 16px; border: 2px solid var(--navy); border-radius: 8px; background: var(--bg-color); font-weight: 600; color: var(--text-color); cursor: pointer; font-size: 14px; }
+.workflow-summary { margin-top: 20px; padding: 20px; background: var(--bg-color); border-radius: 12px; border-left: 6px solid var(--green); display: none; }
+.path-step { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--switch-bg); border-radius: 20px; font-weight: 700; font-size: 12px; border: 1px solid var(--panel-border); }
+
+/* Efecto de ruta activa sobre tarjetas D3 */
+.workflow-mode .node-card { opacity: 0.25; filter: grayscale(80%); }
+.workflow-mode .node-card.path-active { opacity: 1; filter: none; border-color: var(--yellow); box-shadow: 0 0 15px rgba(255, 209, 0, 0.6); }
+.path-number { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; background: var(--navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; border: 2px solid white; z-index: 10; }
+
+/* ===== MODALS & GATEKEEPER ===== */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.modal-overlay.hidden { display: none !important; }
+.auth-card { background: var(--bg-color); border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border-top: 6px solid var(--navy); position: relative; }
+body.dark-mode .auth-card { border-top-color: var(--green); }
+.control-btn.navy { border-color: var(--navy); background: var(--navy); color: white; }
+.control-btn.danger { border-color: #dc2626; color: #dc2626; }
+
+/* ===== LEGEND & FOOTER ===== */
+.legend { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding: 20px; background: var(--panel-bg); border-radius: 12px; margin-top: 40px; border: 1px solid var(--panel-border); }
+.legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; }
+.legend-color { width: 22px; height: 22px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.footer { text-align: center; padding: 24px 16px; font-size: 12px; border-top: 1px solid var(--panel-border); margin-top: 24px; opacity: 0.7; }
