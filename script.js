@@ -1,17 +1,16 @@
 // ===== CONFIGURACIÓN CLOUDFLARE KV & ESTADO =====
-const CLOUDFLARE_API_URL = " https://github.com/cloudflare/workers-sdk/issues/new/choose
-"; // Lo llenaremos en el Paso 3
+const CLOUDFLARE_API_URL = "https://org-extra-api.adrian-camelot32.workers.dev"; // URL actualizada
 let isAdmin = false;
 
 let nodesMap = {};
 let nodeIdCounter = 0;
 
-// DATOS POR DEFECTO (Raíz de Extracurriculares)
+// DATOS POR DEFECTO
 const DEFAULT_ORG_DATA = {
   title: "Coordinación de Actividades Extracurriculares", 
   person: "Vacante", 
   color: "green",
-  children: [] // Inicia vacío para que construyas desde cero
+  children: [] 
 };
 
 let orgData = JSON.parse(localStorage.getItem('org_extra_data')) || DEFAULT_ORG_DATA;
@@ -54,53 +53,91 @@ function assignIds(node, parent = null) {
   if (node._children) node._children.forEach(c => assignIds(c, node));
 }
 
-// ===== D3.JS: ÁRBOL VECTORIAL =====
+// ==========================================
+// ===== D3.JS: ÁRBOL ORTOGONAL (VERTICAL Y HORIZONTAL) 
+// ==========================================
 function renderD3Tree(orientation = 'vertical') {
   const container = document.getElementById('view-container');
   container.innerHTML = ''; 
-  if (typeof d3 === 'undefined') { container.innerHTML = `<p class="text-center text-red-500 font-bold p-10">D3.js no cargó.</p>`; return; }
+  
+  if (typeof d3 === 'undefined') {
+    container.innerHTML = `<p class="text-center text-red-500 font-bold p-10">D3.js no cargó. Revisa el HTML.</p>`;
+    return;
+  }
 
   const width = container.clientWidth || 1000;
   const height = 650;
-  const svg = d3.select('#view-container').append('svg').attr('width', '100%').attr('height', '75vh').style('cursor', 'grab').style('border-radius', '16px');
+  
+  const svg = d3.select('#view-container').append('svg')
+      .attr('width', '100%').attr('height', '75vh')
+      .style('cursor', 'grab').style('border-radius', '16px');
+
   const g = svg.append('g');
   const zoom = d3.zoom().scaleExtent([0.1, 3]).on('zoom', e => g.attr('transform', e.transform));
   svg.call(zoom);
 
   const root = d3.hierarchy(orgData, d => d.children);
-  const treeLayout = d3.tree().nodeSize(orientation === 'horizontal' ? [180, 350] : [300, 250]);
+  
+  // Tamaño de separación entre nodos dependiendo de la orientación
+  const treeLayout = d3.tree().nodeSize(
+      orientation === 'horizontal' ? [180, 350] : [300, 250]
+  );
   treeLayout(root);
 
+  // Creador de líneas (Links) con ángulos de 90 grados
   g.append("g").attr("class", "links")
-      .selectAll(".link").data(root.links()).join("path").attr("class", "link").attr("fill", "none").attr("stroke", "var(--line)").attr("stroke-width", "3px")
+      .selectAll(".link").data(root.links()).join("path")
+      .attr("class", "link")
+      .attr("fill", "none")
+      .attr("stroke", "var(--line)")
+      .attr("stroke-width", "3px")
       .attr("d", d => {
           if (orientation === 'horizontal') {
-              const startX = d.source.y + 130; const startY = d.source.x;
-              const endX = d.target.y - 130; const endY = d.target.x;
-              const midX = (startX + endX) / 2; return `M${startX},${startY} H${midX} V${endY} H${endX}`;
+              const startX = d.source.y + 130;
+              const startY = d.source.x;
+              const endX = d.target.y - 130;
+              const endY = d.target.x;
+              const midX = (startX + endX) / 2;
+              return `M${startX},${startY} H${midX} V${endY} H${endX}`;
           } else {
-              const startX = d.source.x; const startY = d.source.y + 110;
-              const endX = d.target.x; const endY = d.target.y - 50; 
-              const midY = (startY + endY) / 2; return `M${startX},${startY} V${midY} H${endX} V${endY}`;
+              const startX = d.source.x;
+              const startY = d.source.y + 110;
+              const endX = d.target.x;
+              const endY = d.target.y - 50; 
+              const midY = (startY + endY) / 2;
+              return `M${startX},${startY} V${midY} H${endX} V${endY}`;
           }
       });
 
-  const nodeGroup = g.append("g").attr("class", "nodes").selectAll(".node").data(root.descendants()).join("g").attr("class", "node")
+  const nodeGroup = g.append("g").attr("class", "nodes")
+      .selectAll(".node").data(root.descendants()).join("g")
+      .attr("class", "node")
       .attr("transform", d => orientation === 'horizontal' ? `translate(${d.y},${d.x})` : `translate(${d.x},${d.y})`);
 
-  nodeGroup.append("foreignObject").attr("x", -130).attr("y", -50).attr("width", 260).attr("height", 240).style("overflow", "visible")
-      .append("xhtml:div").html(d => generateCardHTML(d.data, orientation));
+  nodeGroup.append("foreignObject")
+      .attr("x", -130).attr("y", -50)
+      .attr("width", 260).attr("height", 240)
+      .style("overflow", "visible")
+      .append("xhtml:div")
+      .html(d => generateCardHTML(d.data, orientation));
 
-  if (orientation === 'horizontal') svg.call(zoom.transform, d3.zoomIdentity.translate(150, height / 2).scale(0.85));
-  else svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, 80).scale(0.85));
+  // Posicionar la cámara (zoom inicial) según la vista
+  if (orientation === 'horizontal') {
+      svg.call(zoom.transform, d3.zoomIdentity.translate(150, height / 2).scale(0.85));
+  } else {
+      svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, 80).scale(0.85));
+  }
 }
 
 function generateCardHTML(data, orientation) {
   const hasChildren = (data.children && data.children.length > 0) || (data._children && data._children.length > 0);
   const isCollapsed = !data.children && data._children;
+  
   let html = `<div class="node-card node-${data.color}" data-id="${data.id}" style="margin: 0; width: 100%;">`;
+  
   html += `<div class="node-content text-center w-full"><div class="node-title">${data.title}</div>`;
   if (data.person) html += `<div class="node-person">${data.person}</div>`;
+  
   if (isAdmin) {
     html += `<div class="node-actions" onclick="event.stopPropagation()">
       <button class="node-btn" title="Editar" onclick="editNode(${data.id})"><i class="fas fa-pen"></i></button>
@@ -108,19 +145,37 @@ function generateCardHTML(data, orientation) {
       <button class="node-btn" title="Eliminar" onclick="deleteNode(${data.id})"><i class="fas fa-trash"></i></button>
     </div>`;
   }
+  
+  // Botón expandir adaptado (abajo para vertical, a la derecha para horizontal)
   if (hasChildren) {
     const icon = isCollapsed ? 'fa-plus' : 'fa-minus';
-    const btnPosition = orientation === 'horizontal' ? `right: -14px; top: 50%; transform: translateY(-50%);` : `bottom: -14px; left: 50%; transform: translateX(-50%);`;
+    const btnPosition = orientation === 'horizontal'
+        ? `right: -14px; top: 50%; transform: translateY(-50%);`
+        : `bottom: -14px; left: 50%; transform: translateX(-50%);`;
+        
     html += `<div onclick="toggleD3Node(${data.id})" style="position: absolute; ${btnPosition} cursor: pointer; background: var(--navy); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;"><i class="fas ${icon}"></i></div>`;
   }
-  html += `</div></div>`; return html;
+  
+  html += `</div></div>`;
+  return html;
 }
 
 function toggleD3Node(id) {
-  const node = findNodeObj(orgData, id); if (!node) return;
+  const node = findNodeObj(orgData, id);
+  if (!node) return;
   if (node.children) { node._children = node.children; delete node.children; } 
   else if (node._children) { node.children = node._children; delete node._children; }
   saveOrgData(); 
+}
+
+function expandAll() { traverseAndExpand(orgData); saveOrgData(); }
+function traverseAndExpand(n) {
+  if (n._children) { n.children = n._children; delete n._children; }
+  if (n.children) n.children.forEach(traverseAndExpand);
+}
+function collapseAll() { if(orgData.children) orgData.children.forEach(traverseAndCollapse); saveOrgData(); }
+function traverseAndCollapse(n) {
+  if (n.children) { n._children = n.children; delete n.children; n._children.forEach(traverseAndCollapse); }
 }
 
 // ===== FUNCIONES DE EDICIÓN =====
@@ -140,10 +195,12 @@ function findParentObj(root, id, parent = null) {
 
 function editNode(id) {
   if (!isAdmin) return;
-  const node = findNodeObj(orgData, id); if (!node) return;
+  const node = findNodeObj(orgData, id);
+  if (!node) return;
   const newTitle = prompt("Título del área o cargo:", node.title); if (newTitle === null) return;
   const newPerson = prompt("Nombre de la persona (vacío si no hay):", node.person || ""); if (newPerson === null) return;
   const newColor = prompt("Color (green, navy, yellow, lightblue):", node.color);
+  
   if (newTitle.trim() !== "") node.title = newTitle.trim();
   if (newPerson.trim() !== "") node.person = newPerson.trim(); else delete node.person;
   if (['green', 'navy', 'yellow', 'lightblue'].includes(newColor)) node.color = newColor;
@@ -152,7 +209,8 @@ function editNode(id) {
 
 function addNode(id) {
   if (!isAdmin) return;
-  const node = findNodeObj(orgData, id); if (!node) return;
+  const node = findNodeObj(orgData, id);
+  if (!node) return;
   const title = prompt("Escribe el nombre del nuevo cargo:"); if (!title || title.trim() === "") return;
   if (!node.children && !node._children) node.children = [];
   const target = node.children ? node.children : node._children;
@@ -180,25 +238,39 @@ function switchView(view, event) {
   document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
   if(event && event.currentTarget) event.currentTarget.classList.add('active');
   else { const btn = document.querySelector(`.view-btn[onclick*="${view}"]`); if(btn) btn.classList.add('active'); }
+  
   const container = document.getElementById('view-container');
   const wfControls = document.getElementById('workflow-controls');
-  if(!container) return;
-  wfControls.style.display = 'none'; container.className = 'org-tree'; container.classList.remove('workflow-mode');
   
-  if (view === 'tree') renderD3Tree('vertical');
-  else if (view === 'map-h') renderD3Tree('horizontal');
-  else if (view === 'workflow') { wfControls.style.display = 'block'; container.classList.add('workflow-mode'); renderD3Tree('horizontal'); populateDropdowns(); }
+  if(!container) return;
+
+  wfControls.style.display = 'none';
+  container.className = 'org-tree'; container.classList.remove('workflow-mode');
+  
+  if (view === 'tree') {
+    renderD3Tree('vertical');
+  } else if (view === 'map-h') {
+    renderD3Tree('horizontal');
+  } else if (view === 'workflow') {
+    wfControls.style.display = 'block';
+    container.classList.add('workflow-mode');
+    renderD3Tree('horizontal'); // Flujo luce mejor en modo horizontal
+    populateDropdowns();
+  }
 }
 
 // ===== WORKFLOW PATHFINDING =====
 function populateDropdowns() {
-  const emisorSel = document.getElementById('emisor-select'); const receptorSel = document.getElementById('receptor-select');
+  const emisorSel = document.getElementById('emisor-select');
+  const receptorSel = document.getElementById('receptor-select');
   if(!emisorSel || !receptorSel) return;
   emisorSel.innerHTML = ''; receptorSel.innerHTML = '';
   Object.values(nodesMap).forEach(node => {
-    if (node.id === 0) return; 
-    const opt = document.createElement('option'); opt.value = node.id; opt.textContent = node.title + (node.person ? ` (${node.person.split(',')[0]})` : "");
-    emisorSel.appendChild(opt); receptorSel.appendChild(opt.cloneNode(true));
+    const opt = document.createElement('option');
+    opt.value = node.id;
+    opt.textContent = node.title + (node.person ? ` (${node.person.split(',')[0]})` : "");
+    emisorSel.appendChild(opt);
+    receptorSel.appendChild(opt.cloneNode(true));
   });
   if(emisorSel.options.length > 1) { emisorSel.selectedIndex = 0; receptorSel.selectedIndex = 1; }
 }
@@ -210,22 +282,37 @@ function getAncestors(id) {
 }
 
 function calculatePath() {
-  const startId = parseInt(document.getElementById('emisor-select').value); const endId = parseInt(document.getElementById('receptor-select').value);
-  document.querySelectorAll('.node-card').forEach(c => { c.classList.remove('path-active', 'path-start', 'path-end'); const num = c.querySelector('.path-number'); if (num) num.remove(); });
+  const startId = parseInt(document.getElementById('emisor-select').value);
+  const endId = parseInt(document.getElementById('receptor-select').value);
+  
+  document.querySelectorAll('.node-card').forEach(c => {
+    c.classList.remove('path-active', 'path-start', 'path-end');
+    const num = c.querySelector('.path-number'); if (num) num.remove();
+  });
+  
   const summaryDiv = document.getElementById('workflow-summary');
-  if (startId === endId) { summaryDiv.style.display = 'block'; summaryDiv.innerHTML = `<p class="font-bold text-red-600">Emisor y receptor son iguales.</p>`; return; }
+  if (startId === endId) {
+    summaryDiv.style.display = 'block'; summaryDiv.innerHTML = `<p class="font-bold text-red-600">Emisor y receptor son la misma área.</p>`; return;
+  }
   
   const pathStart = getAncestors(startId); const pathEnd = getAncestors(endId);
   const setEnd = new Set(pathEnd); const lcaId = pathStart.find(id => setEnd.has(id));
-  const route = []; for (let id of pathStart) { route.push(id); if (id === lcaId) break; }
-  const downPath = []; for (let id of pathEnd) { if (id === lcaId) break; downPath.push(id); }
+  
+  const route = [];
+  for (let id of pathStart) { route.push(id); if (id === lcaId) break; }
+  const downPath = [];
+  for (let id of pathEnd) { if (id === lcaId) break; downPath.push(id); }
   downPath.reverse(); route.push(...downPath);
   
   route.forEach((id, index) => {
     const el = document.querySelector(`.node-card[data-id="${id}"]`);
     if (el) {
-      el.classList.add('path-active'); if (id === startId) el.classList.add('path-start'); if (id === endId) el.classList.add('path-end');
-      const num = document.createElement('div'); num.className = 'path-number'; num.textContent = index + 1; el.appendChild(num);
+      el.classList.add('path-active');
+      if (id === startId) el.classList.add('path-start');
+      if (id === endId) el.classList.add('path-end');
+      const num = document.createElement('div');
+      num.className = 'path-number'; num.textContent = index + 1;
+      el.appendChild(num);
     }
   });
   
@@ -238,26 +325,96 @@ function calculatePath() {
   }).join('');
   
   summaryDiv.style.display = 'block';
-  summaryDiv.innerHTML = `<h4 class="title-font font-bold uppercase text-base sm:text-lg mb-2">Ruta Calculada</h4><div class="flex flex-wrap gap-2 mb-4"><span class="path-step" style="background:#009944; color:white;">Instancias: ${instances}</span><span class="path-step" style="background:#032A60; color:white;">Pasos: ${steps}</span></div><div class="flex flex-wrap items-center mt-2 border-t pt-4">${routeHtml}</div>`;
+  summaryDiv.innerHTML = `
+    <h4 class="title-font font-bold uppercase text-base sm:text-lg mb-2">Ruta Calculada</h4>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="path-step" style="background:#009944; color:white;">Instancias: ${instances}</span>
+      <span class="path-step" style="background:#032A60; color:white;">Pasos: ${steps}</span>
+    </div>
+    <div class="flex flex-wrap items-center mt-2 border-t pt-4">${routeHtml}</div>
+  `;
 }
 
+// ===== EVENTOS Y DARK MODE ======
 function toggleDarkMode() {
-  document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode');
-  const icon = document.querySelector('#dark-mode-toggle i'); const text = document.getElementById('dark-mode-text');
+  document.body.classList.toggle('dark-mode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  const icon = document.querySelector('#dark-mode-toggle i');
+  const text = document.getElementById('dark-mode-text');
   if (isDarkMode) { if(icon) icon.classList.replace('fa-moon', 'fa-sun'); if(text) text.textContent = 'Modo Claro'; localStorage.setItem('theme', 'dark'); } 
   else { if(icon) icon.classList.replace('fa-sun', 'fa-moon'); if(text) text.textContent = 'Modo Oscuro'; localStorage.setItem('theme', 'light'); }
 }
 
-if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.addEventListener('DOMContentLoaded', () => { const icon = document.querySelector('#dark-mode-toggle i'); const text = document.getElementById('dark-mode-text'); if(icon) icon.classList.replace('fa-moon', 'fa-sun'); if(text) text.textContent = 'Modo Claro'; }); }
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark-mode');
+  window.addEventListener('DOMContentLoaded', () => {
+    const icon = document.querySelector('#dark-mode-toggle i');
+    const text = document.getElementById('dark-mode-text');
+    if(icon) icon.classList.replace('fa-moon', 'fa-sun'); if(text) text.textContent = 'Modo Claro';
+  });
+}
+
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW:', err)); }); }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const guestBtn = document.getElementById('btn-guest-login'); const adminBtn = document.getElementById('btn-admin-login'); const closeModal = document.getElementById('close-modal'); const exportBtn = document.getElementById('btn-export-json'); const importBtn = document.getElementById('btn-import-json'); const resetBtn = document.getElementById('btn-reset-org'); const importFile = document.getElementById('import-file-input');
+// Lógica segura de inicialización
+window.addEventListener('DOMContentLoaded', () => {
+  const guestBtn = document.getElementById('btn-guest-login');
+  const adminBtn = document.getElementById('btn-admin-login');
+  const closeModal = document.getElementById('close-modal');
+  const exportBtn = document.getElementById('btn-export-json');
+  const importBtn = document.getElementById('btn-import-json');
+  const resetBtn = document.getElementById('btn-reset-org');
+  const importFile = document.getElementById('import-file-input');
   
-  if(guestBtn) guestBtn.addEventListener('click', () => { isAdmin = false; document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('settings-btn').classList.add('hidden'); loadOrgDataFromCloud(); });
-  if(adminBtn) adminBtn.addEventListener('click', () => { if (document.getElementById('admin-pass-input').value === "psique33") { isAdmin = true; document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('settings-btn').classList.remove('hidden'); loadOrgDataFromCloud(); } else alert("Contraseña incorrecta."); });
+  if(guestBtn) {
+    guestBtn.addEventListener('click', () => {
+      isAdmin = false;
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('settings-btn').classList.add('hidden');
+      loadOrgDataFromCloud();
+    });
+  }
+
+  if(adminBtn) {
+    adminBtn.addEventListener('click', () => {
+      const passInput = document.getElementById('admin-pass-input').value;
+      if (passInput === "L0b0l0b0") { 
+        isAdmin = true;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('settings-btn').classList.remove('hidden');
+        loadOrgDataFromCloud();
+      } else {
+        alert("Contraseña incorrecta. Intenta de nuevo.");
+      }
+    });
+  }
+
   if(closeModal) closeModal.addEventListener('click', () => document.getElementById('settings-modal').classList.add('hidden'));
-  if(exportBtn) exportBtn.addEventListener('click', () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(orgData, null, 2)); const link = document.createElement('a'); link.href = dataStr; link.download = "Extracurriculares_Respaldo.json"; link.click(); });
-  if(importBtn && importFile) { importBtn.addEventListener('click', () => importFile.click()); importFile.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { try { orgData = JSON.parse(evt.target.result); saveOrgData(); document.getElementById('settings-modal').classList.add('hidden'); alert("Restaurado con éxito."); } catch (err) { alert("Error JSON."); } }; reader.readAsText(file); }); }
-  if(resetBtn) resetBtn.addEventListener('click', () => { if (confirm("⚠️ ¿Restaurar a versión inicial?")) { localStorage.removeItem('org_extra_data'); orgData = JSON.parse(JSON.stringify(DEFAULT_ORG_DATA)); saveOrgData(); document.getElementById('settings-modal').classList.add('hidden'); } });
+
+  if(exportBtn) exportBtn.addEventListener('click', () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(orgData, null, 2));
+    const link = document.createElement('a'); link.href = dataStr; link.download = "Extracurriculares_Respaldo.json"; link.click();
+  });
+
+  if(importBtn && importFile) {
+    importBtn.addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try { orgData = JSON.parse(evt.target.result); saveOrgData(); document.getElementById('settings-modal').classList.add('hidden'); alert("Restaurado con éxito."); } 
+        catch (err) { alert("Error JSON."); }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  if(resetBtn) resetBtn.addEventListener('click', () => {
+    if (confirm("⚠️ ¿Restaurar a versión inicial?")) {
+      localStorage.removeItem('org_extra_data');
+      orgData = JSON.parse(JSON.stringify(DEFAULT_ORG_DATA));
+      saveOrgData();
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+  });
 });
