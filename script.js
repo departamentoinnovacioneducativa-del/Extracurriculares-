@@ -1,11 +1,11 @@
 // ===== CONFIGURACIÓN CLOUDFLARE KV & ESTADO =====
-const CLOUDFLARE_API_URL = "https://org-extra-api.adrian-camelot32.workers.dev"; // URL actualizada
+const CLOUDFLARE_API_URL = "https://org-extra-api.adrian-camelot32.workers.dev";
 let isAdmin = false;
 
 let nodesMap = {};
 let nodeIdCounter = 0;
 
-// DATOS POR DEFECTO
+// DATOS POR DEFECTO (Extracurriculares)
 const DEFAULT_ORG_DATA = {
   title: "Coordinación de Actividades Extracurriculares", 
   person: "Vacante", 
@@ -146,7 +146,7 @@ function generateCardHTML(data, orientation) {
     </div>`;
   }
   
-  // Botón expandir adaptado (abajo para vertical, a la derecha para horizontal)
+  // Botón expandir adaptado
   if (hasChildren) {
     const icon = isCollapsed ? 'fa-plus' : 'fa-minus';
     const btnPosition = orientation === 'horizontal'
@@ -241,10 +241,13 @@ function switchView(view, event) {
   
   const container = document.getElementById('view-container');
   const wfControls = document.getElementById('workflow-controls');
+  const controlsBar = document.getElementById('controls-bar');
   
   if(!container) return;
 
   wfControls.style.display = 'none';
+  if(controlsBar) controlsBar.style.display = 'flex'; // Muestra botones
+  
   container.className = 'org-tree'; container.classList.remove('workflow-mode');
   
   if (view === 'tree') {
@@ -253,8 +256,9 @@ function switchView(view, event) {
     renderD3Tree('horizontal');
   } else if (view === 'workflow') {
     wfControls.style.display = 'block';
+    if(controlsBar) controlsBar.style.display = 'none'; // Oculta botones
     container.classList.add('workflow-mode');
-    renderD3Tree('horizontal'); // Flujo luce mejor en modo horizontal
+    renderD3Tree('horizontal');
     populateDropdowns();
   }
 }
@@ -378,7 +382,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if(adminBtn) {
     adminBtn.addEventListener('click', () => {
       const passInput = document.getElementById('admin-pass-input').value;
-      // AQUÍ VALIDAMOS CUALQUIERA DE LAS DOS CONTRASEÑAS
       if (passInput === "lulut" || passInput === "L0b0l0b0") { 
         isAdmin = true;
         document.getElementById('auth-screen').classList.add('hidden');
